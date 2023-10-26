@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Iniciar Sesión</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}"/>
+</head>
+<body>
+<div class="wrapper">
+
+    <div class="heading">
+        <h2>Welcome!</h2>
+        <p>Sign In to your account</p>
+    </div>
+    <form th:action="@{/login}" method="post">
+        <div class="input-group">
+            <input type="text" id="username" name="username" class="input-field" placeholder="Username">
+        </div>
+
+        <div class="input-group">
+            <input type="password" id="password" name="password" class="input-field" placeholder="Password">
+        </div>
+
+        <div class="input-group">
+            <button>Login <i class="fa-solid fa-arrow-right"></i></button>
+        </div>
+    </form>
+</div>
+</body>
+</html>
