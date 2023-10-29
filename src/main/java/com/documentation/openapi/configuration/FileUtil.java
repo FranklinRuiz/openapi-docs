@@ -20,4 +20,11 @@ public class FileUtil {
 
         return yamlFiles;
     }
+
+    public static boolean isValidFileExtension(String filename) {
+        if (filename == null) return false;
+
+        String lowerCaseFilename = filename.toLowerCase();
+        return lowerCaseFilename.endsWith(".yml") || lowerCaseFilename.endsWith(".yaml");
+    }
 }

@@ -8,6 +8,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -27,10 +30,13 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+                .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests((requests) -> requests
                         .requestMatchers("/css/**").permitAll()
+                        .requestMatchers("/img/**").permitAll()
                         .requestMatchers("/api/**").hasRole("USER")
-                        .anyRequest().authenticated()
+                        .anyRequest()
+                        .authenticated()
                 )
                 .formLogin((form) -> form
                         .loginPage("/login")
@@ -70,14 +76,14 @@ public class SecurityConfig {
 
 
     private AuthenticationEntryPoint getRestAuthenticationEntryPoint() {
-        return (HttpServletRequest request, HttpServletResponse response, org.springframework.security.core.AuthenticationException authException) -> {
+        return (HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) -> {
             response.sendError(HttpStatus.FORBIDDEN.value(), HttpStatus.FORBIDDEN.getReasonPhrase());
         };
     }
 
 
     private AuthenticationSuccessHandler authenticationSuccessHandler() {
-        return (HttpServletRequest request, HttpServletResponse response, org.springframework.security.core.Authentication authentication) -> {
+        return (HttpServletRequest request, HttpServletResponse response, Authentication authentication) -> {
             HttpSession session = request.getSession();
             if (session != null) {
                 response.sendRedirect("/swagger-ui/index.html");

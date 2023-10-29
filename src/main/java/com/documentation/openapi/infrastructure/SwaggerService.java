@@ -1,12 +1,14 @@
 package com.documentation.openapi.infrastructure;
 
 import com.documentation.openapi.configuration.FileUtil;
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -21,18 +23,30 @@ public class SwaggerService {
     @Value("${directory.apidocs}")
     private String directoryPath;
 
-    public void uploadFile(MultipartFile file) {
+    private Path fileStorageLocation;
+
+    @PostConstruct
+    public void init() {
         try {
-            Path fileStorageLocation = Paths.get(directoryPath).toAbsolutePath().normalize();
-
-            if (!Files.exists(fileStorageLocation)) {
-                Files.createDirectories(fileStorageLocation);
-            }
-
-            Path targetLocation = fileStorageLocation.resolve(Objects.requireNonNull(file.getOriginalFilename()));
-            Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
+            fileStorageLocation = Paths.get(directoryPath).toAbsolutePath().normalize();
+            Files.createDirectories(fileStorageLocation);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Could not create directory.", e);
+        }
+    }
+
+    public void uploadFile(MultipartFile file) {
+        if (!FileUtil.isValidFileExtension(file.getOriginalFilename())) {
+            throw new RuntimeException("Unsupported format.");
+        }
+
+        String originalFileName = Objects.requireNonNull(file.getOriginalFilename(), "File name cannot be null");
+        Path targetLocation = fileStorageLocation.resolve(originalFileName);
+
+        try (InputStream inputStream = file.getInputStream()) {
+            Files.copy(inputStream, targetLocation, StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException e) {
+            throw new RuntimeException("An error occurred while storing the file " + originalFileName, e);
         }
     }
 
@@ -46,7 +60,7 @@ public class SwaggerService {
 
     public String deleteFile(String fileName) {
         try {
-            Path filePath = Paths.get(directoryPath, fileName);
+            Path filePath = fileStorageLocation.resolve(fileName);
 
             if (!Files.exists(filePath)) return "File not found.";
 

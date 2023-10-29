@@ -34,6 +34,7 @@ public class SwaggerController {
     public ResponseEntity<String> uploadFile(@RequestParam("file") MultipartFile file) {
         try {
             swaggerService.uploadFile(file);
+            swaggerConfigService.loadApiDocs();
             return ResponseEntity.ok("File uploaded successfully.");
         } catch (Exception ex) {
             return ResponseEntity.status(500).body("The file could not be uploaded. Error: " + ex.getMessage());
